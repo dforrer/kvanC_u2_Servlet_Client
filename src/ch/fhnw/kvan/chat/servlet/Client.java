@@ -1,7 +1,13 @@
 package ch.fhnw.kvan.chat.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLConnection;
 
 import ch.fhnw.kvan.chat.general.Chats;
 import ch.fhnw.kvan.chat.general.Participants;
@@ -14,9 +20,7 @@ public class Client implements IChatDriver, IChatRoom {
 
 	private static Client client;
 
-	private Socket s;
-	protected In in;
-	protected Out out;
+	private static URL url;
 	private boolean running;
 	private ClientGUI gui;
 
@@ -33,39 +37,52 @@ public class Client implements IChatDriver, IChatRoom {
 		System.out.println("Client-Class has been called with arguments: ");
 		System.out.println("Name: " + args[0]);
 		System.out.println("Host: " + args[1]);
-		System.out.println("Port: " + args[2]);
 
-		int port = Integer.parseInt(args[2]);
 		String clientName = args[0];
-
-		client = new Client();
 		try {
-			client.connect(args[1], port);
+			url = new URL("http://"+args[1]);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Make request
+		
+		String response = null;
+		
+		try {
+			HttpURLConnection c = (HttpURLConnection) url.openConnection();
+	        c.setRequestMethod("GET");
+	        c.setRequestProperty("Content-length", "0");
+	        c.setUseCaches(false);
+	        c.setAllowUserInteraction(false);
+	        c.setConnectTimeout(30);
+	        c.setReadTimeout(30);
+	        c.connect();
+	        int status = c.getResponseCode();
+
+	        switch (status) {
+	            case 200:
+	            case 201:
+	                BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
+	                StringBuilder sb = new StringBuilder();
+	                String line;
+	                while ((line = br.readLine()) != null) {
+	                    sb.append(line+"\n");
+	                }
+	                br.close();
+	                response = sb.toString();
+	        }
+	        System.out.println(response);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		
+		client = new Client();
+	
 		// Send name
-		client.out.println("name=" + clientName);
-
 		client.gui = new ClientGUI(client, clientName);
-		client.startListening();
-	}
-
-	public void startListening() {
-		new Thread() {
-			public void run() {
-
-				String input = in.readLine();
-
-				while (running && input != null) {
-					System.out.println("input from server: " + input);
-					processServerMessage(input);
-					input = in.readLine();
-				}
-			}
-		}.start();
 	}
 
 	public void processServerMessage(String input) {
@@ -176,22 +193,11 @@ public class Client implements IChatDriver, IChatRoom {
 
 	@Override
 	public void connect(String host, int port) throws IOException {
-		// Setup socket-connection
-		s = null;
-		try {
-			s = new Socket(host, port, null, 0);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		in = new In(s);
-		out = new Out(s);
+
 	}
 
 	@Override
 	public void disconnect() throws IOException {
-		s.close();
 	}
 
 	@Override
@@ -218,7 +224,7 @@ public class Client implements IChatDriver, IChatRoom {
 	public boolean removeParticipant(String name) throws IOException {
 		if (!name.trim().equalsIgnoreCase("")) {
 			System.out.println("Participant removed");
-			out.println("remove_name=" + name);
+		//	out.println("remove_name=" + name);
 			return true;
 		} else {
 			return false;
@@ -229,7 +235,7 @@ public class Client implements IChatDriver, IChatRoom {
 	public boolean addTopic(String topic) throws IOException {
 		if (!topic.trim().equalsIgnoreCase("")) {
 			System.out.println("Topic added: " + topic);
-			out.println("add_topic=" + topic);
+		//	out.println("add_topic=" + topic);
 			return true;
 		} else {
 			return false;
@@ -240,7 +246,7 @@ public class Client implements IChatDriver, IChatRoom {
 	public boolean removeTopic(String topic) throws IOException {
 		if (!topic.trim().equalsIgnoreCase("")) {
 			System.out.println("Topic removed");
-			out.println("remove_topic=" + topic);
+		//	out.println("remove_topic=" + topic);
 			return true;
 		} else {
 			return false;
@@ -252,7 +258,7 @@ public class Client implements IChatDriver, IChatRoom {
 		if (!topic.trim().equalsIgnoreCase("")
 				&& !message.trim().equalsIgnoreCase("")) {
 			System.out.println("Message added");
-			out.println("message=" + message + ";topic=" + topic);
+		//	out.println("message=" + message + ";topic=" + topic);
 			return true;
 		} else {
 			return false;
