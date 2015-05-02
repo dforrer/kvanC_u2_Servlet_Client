@@ -260,7 +260,14 @@ public class Client implements IChatDriver, IChatRoom {
 						break;
 					}
 				}
+				String messages2 = chatInfo.getMessages(topic).split("=")[1];
+				String[] stringArray = messages2.split(";;");
+				gui.updateMessages(stringArray);	// This is ugly but it works
+			} else {
+				gui.updateMessages(new String[0]);
+				return ("messages=");				
 			}
+			
 			return chatInfo.getMessages(topic);
 		} else {
 			return ("messages=");
