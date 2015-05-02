@@ -60,9 +60,10 @@ public class Client implements IChatDriver, IChatRoom {
 	        c.setReadTimeout(30);
 	        c.connect();
 	        int status = c.getResponseCode();
-
+         	System.out.println("Status-Code:" + status);
+     	   
 	        switch (status) {
-	            case 200:
+	            case 200:	// notice the missing break!
 	            case 201:
 	                BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
 	                StringBuilder sb = new StringBuilder();
@@ -75,13 +76,13 @@ public class Client implements IChatDriver, IChatRoom {
 	        }
 	        System.out.println(response);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		client = new Client();
 	
-		// Send name
+		//TODO Send name
+		
 		client.gui = new ClientGUI(client, clientName);
 	}
 
@@ -193,7 +194,6 @@ public class Client implements IChatDriver, IChatRoom {
 
 	@Override
 	public void connect(String host, int port) throws IOException {
-
 	}
 
 	@Override
@@ -242,6 +242,7 @@ public class Client implements IChatDriver, IChatRoom {
 		}
 	}
 
+	
 	@Override
 	public boolean removeTopic(String topic) throws IOException {
 		if (!topic.trim().equalsIgnoreCase("")) {
@@ -283,6 +284,7 @@ public class Client implements IChatDriver, IChatRoom {
 
 	@Override
 	public String refresh(String topic) throws IOException {
+		System.out.println("refresh CALLED--------------");
 		if (!topic.trim().equalsIgnoreCase("")) {
 			return chatInfo.getMessages(topic);
 		} else {
