@@ -11,6 +11,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 
+import org.apache.log4j.Logger;
+
 import ch.fhnw.kvan.chat.general.Chats;
 import ch.fhnw.kvan.chat.general.Participants;
 import ch.fhnw.kvan.chat.gui.ClientGUI;
@@ -25,7 +27,8 @@ public class Client implements IChatDriver, IChatRoom {
 	private static String url;
 	private boolean running;
 	private ClientGUI gui;
-
+	private static Logger logger;
+	
 	// Same as ChatRoom-Class
 	private final Participants participantInfo = new Participants();
 	private final Chats chatInfo = new Chats();
@@ -33,6 +36,7 @@ public class Client implements IChatDriver, IChatRoom {
 	public Client() {
 		running = true;
 		// Start GUI
+		logger = Logger.getLogger(Client.class);
 	}
 
 	public static void main(String args[]) throws IOException {
@@ -79,7 +83,7 @@ public class Client implements IChatDriver, IChatRoom {
 			url_temp = new URL(url + request);
 		} catch (MalformedURLException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.error("makeRequest: MalformedURLException");
 		}
 
 		try {
@@ -111,7 +115,8 @@ public class Client implements IChatDriver, IChatRoom {
 			}
 
 		} catch (IOException e) {
-			//e.printStackTrace();
+			logger.error("makeRequest: IOException");
+
 		}
 		return null;
 	}
