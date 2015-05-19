@@ -40,10 +40,7 @@ public class Client implements IChatDriver, IChatRoom {
 	}
 
 	public static void main(String args[]) throws IOException {
-		System.out.println("Client-Class has been called with arguments: ");
-		System.out.println("Name: " + args[0]);
-		System.out.println("Host: " + args[1]);
-
+	
 		clientName = args[0];
 		url = "http://" + args[1];
 
@@ -77,7 +74,7 @@ public class Client implements IChatDriver, IChatRoom {
 	 * @return
 	 */
 	public String makeRequest(String request) {
-		System.out.println("request:" + request);
+		logger.info("request:" + request);
 		URL url_temp = null;
 		try {
 			url_temp = new URL(url + request);
@@ -96,7 +93,7 @@ public class Client implements IChatDriver, IChatRoom {
 			c.setReadTimeout(30);
 			c.connect();
 			int status = c.getResponseCode();
-			System.out.println("Status-Code:" + status);
+			logger.info("Status-Code:" + status);
 
 			switch (status) {
 			case 200: // notice the missing break!
@@ -111,7 +108,7 @@ public class Client implements IChatDriver, IChatRoom {
 				br.close();
 				return sb.toString();
 			default:
-				System.out.println(request + "-request failed!!!");
+				logger.info(request + "-request failed!!!");
 			}
 
 		} catch (IOException e) {
@@ -123,7 +120,7 @@ public class Client implements IChatDriver, IChatRoom {
 
 	/*
 	 * public void handleResponse(String input) {
-	 * System.out.println("serverResponse:" + input);
+	 * logger.info("serverResponse:" + input);
 	 * 
 	 * // Handle empty response if (input.equals("topics=") ||
 	 * input.equals("participants=")) { return; }
@@ -140,9 +137,9 @@ public class Client implements IChatDriver, IChatRoom {
 	 * "messages=Meldung1;Meldung2;" String[] messages =
 	 * input.split("=")[1].split(";;"); for (int i = messages.length - 2; i >=
 	 * 0; i--) { if (!chatInfo.addMessage(topic, messages[i])) {
-	 * System.out.println("ERROR: Couldnt add message!"); break; } } // Create
+	 * logger.info("ERROR: Couldnt add message!"); break; } } // Create
 	 * String[] for the gui // ("messages=String1;String2;String3;")
-	 * System.out.println(chatInfo.getMessages(topic)); String messages3 =
+	 * logger.info(chatInfo.getMessages(topic)); String messages3 =
 	 * chatInfo.getMessages(topic).split("=")[1]; String[] stringArray2 =
 	 * messages3.split(";;");
 	 * 
@@ -194,7 +191,7 @@ public class Client implements IChatDriver, IChatRoom {
 	@Override
 	public boolean removeParticipant(String name) throws IOException {
 		if (!name.trim().equalsIgnoreCase("")) {
-			System.out.println("Participant removed");
+			logger.info("Participant removed");
 			makeRequest("?action=removeParticipant&name="
 					+ URLEncoder.encode(clientName, "UTF-8"));
 			return true;
@@ -206,7 +203,7 @@ public class Client implements IChatDriver, IChatRoom {
 	@Override
 	public boolean addTopic(String topic) throws IOException {
 		if (!topic.trim().equalsIgnoreCase("")) {
-			System.out.println("Topic added: " + topic);
+			logger.info("Topic added: " + topic);
 			makeRequest("?action=addTopic&topic="
 					+ URLEncoder.encode(topic, "UTF-8"));
 			getTopics();
@@ -219,7 +216,7 @@ public class Client implements IChatDriver, IChatRoom {
 	@Override
 	public boolean removeTopic(String topic) throws IOException {
 		if (!topic.trim().equalsIgnoreCase("")) {
-			System.out.println("Topic removed");
+			logger.info("Topic removed");
 			makeRequest("?action=removeTopic&topic="
 					+ URLEncoder.encode(topic, "UTF-8"));
 			getTopics();
@@ -233,7 +230,7 @@ public class Client implements IChatDriver, IChatRoom {
 	public boolean addMessage(String topic, String message) throws IOException {
 		if (!topic.trim().equalsIgnoreCase("")
 				&& !message.trim().equalsIgnoreCase("")) {
-			System.out.println("Message added");
+			logger.info("Message added");
 			makeRequest("?action=postMessage&message="
 					+ URLEncoder.encode(clientName + " : " + message, "UTF-8")
 					+ "&topic=" + URLEncoder.encode(topic, "UTF-8"));
@@ -246,7 +243,7 @@ public class Client implements IChatDriver, IChatRoom {
 
 	@Override
 	public String getMessages(String topic) throws IOException {
-		System.out.println("getMessages CALLED: " + topic);
+		logger.info("getMessages CALLED: " + topic);
 		if (topic == null) {
 			return ("messages=");
 		}
@@ -257,14 +254,14 @@ public class Client implements IChatDriver, IChatRoom {
 				return ("messages=");
 			}
 			// FORMAT: "messages=Meldung1;Meldung2;"
-			System.out.println("response:" + response);
+			logger.info("response:" + response);
 			chatInfo.removeTopic(topic);
 			chatInfo.addTopic(topic);
 			if (!response.equals("messages=")) {
 				String[] messages = response.split("=")[1].split(";;");
 				for (int i = messages.length - 1; i >= 0; i--) {
 					if (!chatInfo.addMessage(topic, messages[i])) {
-						System.out.println("ERROR: Couldnt add message!");
+						logger.info("ERROR: Couldnt add message!");
 						break;
 					}
 				}
@@ -285,7 +282,7 @@ public class Client implements IChatDriver, IChatRoom {
 	// FORMAT: "topics=Topic1;Topic2;"
 	public void getTopics() {
 		String response = client.makeRequest("?action=getTopics");
-		System.out.println("response:" + response);
+		logger.info("response:" + response);
 		if (response == null) {
 			return;
 		}
@@ -293,7 +290,7 @@ public class Client implements IChatDriver, IChatRoom {
 			String value = response.split("=")[1];
 			String[] topics = value.split(";");
 			for (int i = 0; i < topics.length; i++) {
-				System.out.println("topics[i]:" + topics[i]);
+				logger.info("topics[i]:" + topics[i]);
 				client.chatInfo.addTopic(topics[i]);
 			}
 			client.gui.updateTopics(topics);
@@ -303,7 +300,7 @@ public class Client implements IChatDriver, IChatRoom {
 	// FORMAT: "participants=Mary;Pete;"
 	public void getParticipants() {
 		String response = client.makeRequest("?action=getParticipants");
-		System.out.println("response:" + response);
+		logger.info("response:" + response);
 		if (response == null) {
 			return;
 		}
@@ -311,7 +308,7 @@ public class Client implements IChatDriver, IChatRoom {
 			String value = response.split("=")[1];
 			String[] participants = value.split(";");
 			for (int i = 0; i < participants.length; i++) {
-				System.out.println("participant[i]:" + participants[i]);
+				logger.info("participant[i]:" + participants[i]);
 				client.participantInfo.addParticipant(participants[i]);
 			}
 			client.gui.updateParticipants(participants);
@@ -320,7 +317,7 @@ public class Client implements IChatDriver, IChatRoom {
 
 	@Override
 	public String refresh(String topic) throws IOException {
-		System.out.println("refresh CALLED--------------");
+		logger.info("refresh CALLED--------------");
 		if (!topic.trim().equalsIgnoreCase("")) {
 			client.addParticipant(clientName); // added so we can register the client, after the server has started.
 			client.getParticipants();
